@@ -1,0 +1,19 @@
+{
+  "name": "cli-args",
+  "version": "0.0.1",
+  "description": "Easy command line arguments handling",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "cli-args",
+    "argc",
+    "argv"
+  ],
+  "author": "Anselm Meyn",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^1.21.4"
+  }
+}
