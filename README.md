@@ -20,8 +20,8 @@ var args = require('cli.args')('p:s');
 console.log('-p value:', args.p);
 console.log('-s set?', args.s ? "yes" : "no");
 ```
-accept multiple arguments '-p', '-s' & '-u' which dont need values
-may be specified either as '-psu' or '-p -s -u' on the command-line
+accept multiple arguments ```-p```, ```-s``` & ```-u``` which dont need values
+may be specified either as ```-psu``` or ```-p -s -u``` on the command-line
 ```js
 var args = require('cli.args')('psu');
 console.log('-p set?', args.p ? "yes" : "no");
