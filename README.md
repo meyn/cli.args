@@ -3,36 +3,47 @@ cli.args
 
 Easy command line arguments handling library for your node.js applications.
 
+Uses a ```getopt()``` style options string to parse command line arguments.
+
 ## Installation
 
     npm install cli.args
 
 ## Usage
 
-Accept a command line argument ```-p``` which requires a value
-```js
-var args = require('cli.args')('p:');
-console.log('-p value:', args.p);
-```
-Accept multiple arguments ```-p```, ```-s``` (only ```-p``` requires a value)
-```js
-var args = require('cli.args')('p:s');
-console.log('-p value:', args.p);
-console.log('-s set?', args.s ? "yes" : "no");
-```
-Accept multiple arguments ```-p```, ```-s``` & ```-u``` which don't need values. In this case they may be specified either as ```-psu``` or ```-p -s -u``` on the command-line.
-```js
-var args = require('cli.args')('psu');
-console.log('-p set?', args.p ? "yes" : "no");
-console.log('-s set?', args.s ? "yes" : "no");
-console.log('-u set?', args.u ? "yes" : "no");
-```
+1. Handling a command line argument (```-p```) which requires a value,
+    ```js
+    var args = require('cli.args')('p:');
+    console.log('-p=' + args.p);
+    ```
+    use as,
+    ```bash
+    $ node app.js -p 8080; #output "-p=8080"
+    ```
 
-Accept long-format arguments
-```js
-var args = require('cli.args')(['port:']);
-console.log('--port value:', args.port);
-```
+2. Handling multiple arguments (```-p```, ```-s```, ```-u```) with some requiring values (```-p```),
+    ```js
+    var args = require('cli.args')('p:su');
+    console.log('-p='+ args.p + ', -s set: ' + (args.s ? 'y' : 'n') + ', -u set: ' + (args.u ? 'y' : 'n'));
+    ```
+    use as
+    ```bash
+    $ node app.js -s -p 8080; #outputs "-p=8080, -s set: y, -u set: n"
+    ```
+
+3. Handling long-format arguments,
+    ```js
+    var args = require('cli.args')(['port:', 'debug']);
+    console.log('--port=' + args.port);
+    console.log('--debug? ' + (args.debug ? 'y': 'n'));
+    ```
+    use as
+    ```bash
+    $ node app.js --port 8080; #outputs "--port=8080"
+                               #        "--debug? n"
+    $ node app.js --port 8080 --debug; #outputs "--port=8080"
+                                       #        "--debug? y"
+    ```
 
 ## Tests
 
