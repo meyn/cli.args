@@ -22,10 +22,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com:meyn/nodejs-cli-args.git"
+    "url": "git://github.com:meyn/cli.args.git"
   },
   "bugs": {
-    "url": "git://github.com:meyn/nodejs-cli-args/issues"
+    "url": "git://github.com:meyn/cli.args.git/issues"
   },
   "readmeFilename": "README.md",
   "license": "MIT",
