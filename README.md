@@ -9,19 +9,18 @@ Easy command line arguments handling library for your node.js applications.
 
 ## Usage
 
-accept a command line argument ```-p``` which requires a value
+Accept a command line argument ```-p``` which requires a value
 ```js
 var args = require('cli.args')('p:');
 console.log('-p value:', args.p);
 ```
-accept multiple arguments ```-p```, ```-s``` (only ```-p``` requires a value)
+Accept multiple arguments ```-p```, ```-s``` (only ```-p``` requires a value)
 ```js
 var args = require('cli.args')('p:s');
 console.log('-p value:', args.p);
 console.log('-s set?', args.s ? "yes" : "no");
 ```
-accept multiple arguments ```-p```, ```-s``` & ```-u``` which dont need values
-may be specified either as ```-psu``` or ```-p -s -u``` on the command-line
+Accept multiple arguments ```-p```, ```-s``` & ```-u``` which don't need values. In this case they may be specified either as ```-psu``` or ```-p -s -u``` on the command-line.
 ```js
 var args = require('cli.args')('psu');
 console.log('-p set?', args.p ? "yes" : "no");
