@@ -17,7 +17,7 @@
     "argv",
     "arguments",
     "command",
-    "parser"
+    "parser",
     "getopt"
   ],
   "repository": {
