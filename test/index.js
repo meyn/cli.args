@@ -49,6 +49,33 @@ describe('The cli-args library', function() {
 			}
 		);
 
+		it('should throw an error if required options are missing',
+			function() {
+				function throwError() {
+					cliArgs('a!', null, ['node', 'app.js', '-b']);
+				}
+				assert.throws(throwError, Error);
+			}
+		);
+
+		it('should throw an error if required options with values are missing',
+			function() {
+				function throwError() {
+					cliArgs('a:!', null, ['node', 'app.js', '-a']);
+				}
+				assert.throws(throwError, Error);
+			}
+		);
+
+		it('should correctly parse required options with values',
+			function() {
+				var result =  cliArgs('a:!b:!c!', null, ['node', 'app.js', '-aval', '-b', 'bVal', '-c']);
+				assert.equal(result['a'], 'val');
+				assert.equal(result['b'], 'bVal');
+				assert.equal(result['c'], true);
+			}
+		)
+
 		it("should allow options placed in any order to give the same values",
 			function() {
 				var result1 = cliArgs('b:a:', null, ['node', 'index.js', '-a', 'aVal', '-bbVal']);
@@ -146,10 +173,10 @@ describe('The cli-args library', function() {
 		it('should throw an error if no value is specified for a value-dependent option',
 			function() {
 				function throwError1() {
-					cliArgs(['opt1:'], null, ['node', 'index.js', '-opt1']);
+					cliArgs(['opt1:'], null, ['node', 'index.js', '--opt1']);
 				}
 				function throwError2() {
-					cliArgs(['opt1:', 'opt2:'], null, ['node', 'index.js', '-opt1', 'aVal', '-opt2']);
+					cliArgs(['opt1:', 'opt2:'], null, ['node', 'index.js', '--opt1', 'aVal', '--opt2']);
 				}
 				assert.throws(throwError1, Error);
 				assert.throws(throwError2, Error);
@@ -159,11 +186,39 @@ describe('The cli-args library', function() {
 		it('should throw an error for invalid options',
 			function() {
 				function throwError() {
-					var result = cliArgs(['-opt1'], null, ['node', 'index.js', '-opt2']);
+					var result = cliArgs(['opt1'], null, ['node', 'index.js', '--opt2']);
+					console.log(result);
 				}
 				assert.throws(throwError, Error);
 			}
 		);
+
+		it('should throw an error if required options are missing',
+			function() {
+				function throwError() {
+					cliArgs(['opt1!'], null, ['node', 'app.js', '--opt2']);
+				}
+				assert.throws(throwError, Error);
+			}
+		);
+
+		it('should throw an error if required options with values are missing',
+			function() {
+				function throwError() {
+					cliArgs(['opt1:!'], null, ['node', 'app.js', '--opt1']);
+				}
+				assert.throws(throwError, Error);
+			}
+		);
+
+		it('should correctly parse required options with values',
+			function() {
+				var result =  cliArgs(['opt1:!','opt2:!', 'opt3!'], null, ['node', 'app.js', '--opt1', 'val', '--opt2', 'bVal', '--opt3']);
+				assert.equal(result['opt1'], 'val');
+				assert.equal(result['opt2'], 'bVal');
+				assert.equal(result['opt3'], true);
+			}
+		)
 
 		it("should allow options specified in any order to give the same values",
 			function() {

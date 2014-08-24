@@ -1,7 +1,4 @@
 /**
- * cli-args build version 0.0.1
-*/
-/**
  * @preserve Copyright (c) 2014 Anselm Meyn
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,12 +26,11 @@ var path = require('path');
 
 /*
 */
-function Option(needsArg, needsNumber) {
-	if (needsArg) {
-		this.needsArg = true;
-	}
-	if (needsNumber) {
-		this.needsNumber = true;
+function Option(optionOptions) {
+	for (var index in optionOptions) {
+		if (optionOptions[index]) {
+			this[index] = optionOptions[index];
+		}
 	}
 }
 
@@ -45,20 +41,33 @@ function setupStringOpts(optString) {
 	optString.split('').forEach(function(val, index, list) {
 		var opt,
 			needsArg,
-			needsNumber;
-		if (val === ':') {
+			isRequired;
+
+		switch(val) {
+		case '!':
+			if (list[index-1] === ':') {
+				needsArg = true;
+				opt = list[index-2];
+			}
+			else {
+				opt = list[index-1];
+			}
+			isRequired = true;
+			break;
+		case ':':
 			opt = list[index-1];
 			needsArg = true;
-		}
-		else if (val === '#') {
-			opt = list[index-1];
-			needsArg = needsNumber = true;
-		}
-		else {
+			break;
+		default:
 			opt = val;
+			break;
 		}
-		if (opt && opt.match(/[A-Za-z0-9]/)) {
-			optsList[opt] = new Option(needsArg, needsNumber);
+
+		if (opt && opt.match(/^[A-Za-z0-9]$/)) {
+			optsList[opt] = new Option({
+				needsArg: needsArg,
+				isRequired: isRequired
+			});
 		}
 	});
 	return optsList;
@@ -71,19 +80,32 @@ function setupArrayOpts(optsArray) {
 	optsArray.forEach(function(val, index, list) {
 		var opt,
 			needsArg,
-			needsNumber;
-		if (val.substr(-1) === ':') {
+			isRequired;
+
+		switch(val.substr(-1)) {
+		case '!':
+			if (val.slice(0, -1).substr(-1) === ':') {
+				needsArg = true;
+			}
+			opt = val.match(/([A-Za-z0-9]+)/)[1];
+			isRequired = true;
+			break;
+		case ':':
 			opt = val.slice(0, -1);
 			needsArg = true;
-		}
-		else if(val.substr(-1) === '#') {
-			opt = val.slice(0, -1);
-			needsArg = needsNumber = true;
-		}
-		else {
+			break;
+		default:
 			opt = val;
+			break;
 		}
-		optsList[opt] = new Option(needsArg, needsNumber);
+
+		if(opt && opt.match(/^[A-Za-z0-9]+/)) {
+			optsList[opt] = new Option({
+				needsArg: needsArg,
+				isRequired: isRequired,
+				isLong: (opt.length > 1)
+			});
+		}
 	});
 	return optsList;
 }
@@ -222,19 +244,22 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	*/
 	function buildUsageStr(argv, options) {
 		var usageStr = [];
-		var nonOptStr = [];
+		var currStr;
 		for (var index in options) {
-			if (options[index].needsNumber || options[index].needsArg) {
-				usageStr.unshift('-' + index + ' value');
+			var option = options[index];
+			currStr = '';
+			if (option) {
+				currStr = (option.isLong ? '--' : '-') + index;
+				if (option.needsArg) {
+					currStr += ' value';
+				}
+				if (option.isRequired) {
+					usageStr.unshift(currStr);
+				}
+				else {
+					usageStr.push('['+currStr+']');
+				}
 			}
-			else {
-				nonOptStr.push(index);
-			}
-		}
-		if (nonOptStr.length > 0) {
-			nonOptStr.unshift('[-');
-			nonOptStr.push(']');
-			usageStr = usageStr.concat(nonOptStr.join(''));
 		}
 		usageStr.unshift(argv[0], path.basename(argv[1]));
 		return usageStr.join(' ');
@@ -246,6 +271,12 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	var result = parseArgs(argv.slice(2), optionsList);
 	for (var index in result) {
 		obj[index] = result[index];
+	}
+	for (var index in optionsList) {
+		var option = optionsList[index];
+		if (option.isRequired && !obj[index]) {
+			throw new Error('required option missing -- ' + index);
+		}
 	}
 	obj['argv'] = process.argv;
 	var usageStr = buildUsageStr(argv, optionsList)

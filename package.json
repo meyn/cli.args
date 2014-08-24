@@ -1,6 +1,6 @@
 {
   "name": "cli.args",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Easy command line arguments handling",
   "author": "Anselm Meyn",
   "main": "index.js",
@@ -25,7 +25,7 @@
     "url": "git://github.com:meyn/cli.args.git"
   },
   "bugs": {
-    "url": "git://github.com:meyn/cli.args.git/issues"
+    "url": "https://github.com/meyn/cli.args/issues"
   },
   "readmeFilename": "README.md",
   "license": "MIT",
