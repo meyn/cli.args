@@ -1,16 +1,16 @@
-cli-args
+cli.args
 ========
 
 Easy command line arguments handling library for your node.js applications.
 
 ## Installation
 
-    npm install cli-args
+    npm install cli.args
 
 ## Usage
 
     // TODO
-    var args = require('cli-args')('p');
+    var args = require('cli.args')('p');
 
 ## Tests
 

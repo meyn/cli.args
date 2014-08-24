@@ -1,5 +1,5 @@
 {
-  "name": "cli-args",
+  "name": "cli.args",
   "version": "0.0.1",
   "description": "Easy command line arguments handling",
   "author": "Anselm Meyn",
@@ -9,9 +9,15 @@
     "test-node": "mocha -R spec ./test"
   },
   "keywords": [
+    "cli.args",
     "cli-args",
+    "cli",
+    "args",
     "argc",
     "argv",
+    "arguments",
+    "command",
+    "parser"
     "getopt"
   ],
   "repository": {
