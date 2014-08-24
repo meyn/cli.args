@@ -28,7 +28,7 @@ console.log('-s set?', args.s ? "yes" : "no");
 console.log('-u set?', args.u ? "yes" : "no");
 ```
 
-accept long-format arguments
+Accept long-format arguments
 ```js
 var args = require('cli.args')(['port:']);
 console.log('--port value:', args.port);
