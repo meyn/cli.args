@@ -131,4 +131,4 @@ results in the object ```args``` containing the following values,
     
 ## Release history
 
-    0.0.4 Initial release
+    0.0.5 Initial release
