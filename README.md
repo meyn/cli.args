@@ -12,7 +12,7 @@ Flexible and easy command line arguments handling library for your node.js appli
 
 Uses a ```getopt()``` style option string to parse command line arguments, and returns a JSON object of the parsed arguments along with some useful information.
 
-The option string may be specified in either the POSIX (short) or the GNU long format options. Short options are specified by a preceding dash / hyphen character ```-``` on the command line, while long options are preceded by double dashes ```--```.
+The option string may be specified in either the POSIX (short) or the GNU long format options. Short options are specified by a preceding dash / hyphen character (```-```) on the command line, while long options are preceded by double dashes (```--```).
 
 ### Option String
 
@@ -106,7 +106,7 @@ results in the object ```args``` containing the following values,
         console.error('Command error:', e.message);
     }
     ```
-    use as,
+    when used without the required option (```-p```),
     ```bash
     $ node app.js -s; #throws an Error for missing required argument 'p'
     ```
