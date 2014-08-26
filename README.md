@@ -1,6 +1,8 @@
 cli.args
 ========
 
+[![Build Status](https://travis-ci.org/meyn/cli.args.svg?branch=master)](https://travis-ci.org/meyn/cli.args.svg?branch=master)
+
 Flexible and easy command line arguments handling library for your node.js applications.
 
 ## Installation
