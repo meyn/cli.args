@@ -59,7 +59,7 @@ results in the object ```args``` containing the following values,
   u: true,   // the -u option with its value (true as it does not require an argument)
   p: '8080', // the -p option with its value
   nonOpt: [ 'nonOptionalArg1' ], // all nonOptional cli arguments are available in this array
-  info: {    // an generated object containing app usage information
+  info: {    // a generated object containing app usage information
     usage: 'node app.js -p value [-s] [-u]',
     summary: 'Usage: node app.js -p value [-s] [-u]'
   },
