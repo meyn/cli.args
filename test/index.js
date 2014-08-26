@@ -26,8 +26,21 @@ describe('The cli.args library', function() {
 				function throwError2() {
 					cliArgs('a:b:', null, ['node', 'index.js', '-a', 'aVal', '-b']);
 				}
-				assert.throws(throwError1, Error);
-				assert.throws(throwError2, Error);
+				assert.throws(function() {
+					cliArgs('a:', null, ['node', 'index.js', '-a']);
+				},
+				function(err) {
+					return (err && err.name === 'CliArgsError');
+				},
+				"unexpected error");
+
+				assert.throws(function() {
+					cliArgs('a:b:', null, ['node', 'index.js', '-a', 'aVal', '-b']);
+				},
+				function(err) {
+					return (err && err.name === 'CliArgsError');
+				},
+				"unexpected error");
 			}
 		);
 
@@ -35,9 +48,14 @@ describe('The cli.args library', function() {
 			function() {
 				function throwError1() {
 					var result = cliArgs('-a', null, ['node', 'index.js', '-b']);
-					console.log(result);
 				}
-				assert.throws(throwError1, Error);
+				assert.throws(function() {
+					var result = cliArgs('-a', null, ['node', 'index.js', '-b']);
+				},
+				function(err) {
+					return (err && err.name === 'CliArgsError');
+				},
+				"unexpected error");
 			}
 		);
 
@@ -51,19 +69,25 @@ describe('The cli.args library', function() {
 
 		it('should throw an error if required options are missing',
 			function() {
-				function throwError() {
+				assert.throws(function() {
 					cliArgs('a!', null, ['node', 'app.js', '-b']);
-				}
-				assert.throws(throwError, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
 		it('should throw an error if required options with values are missing',
 			function() {
-				function throwError() {
+				assert.throws(function() {
 					cliArgs('a:!', null, ['node', 'app.js', '-a']);
-				}
-				assert.throws(throwError, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
@@ -158,10 +182,13 @@ describe('The cli.args library', function() {
 
 	describe('with options described by an option array', function() {
 		it('should throw an error for unrecognized options', function() {
-			function throwError() {
+			assert.throws(function() {
 				cliArgs(['opt1'], null, ['node', 'index.js', '--opt2']);
-			}
-			assert.throws(throwError, Error);
+			},
+			function(err) {
+				return err && err.name === "CliArgsError";
+			},
+			"unexpected error");
 		});
 
 		it('should allow setting of options', function() {
@@ -172,42 +199,58 @@ describe('The cli.args library', function() {
 
 		it('should throw an error if no value is specified for a value-dependent option',
 			function() {
-				function throwError1() {
+				assert.throws(function() {
 					cliArgs(['opt1:'], null, ['node', 'index.js', '--opt1']);
-				}
-				function throwError2() {
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
+
+				assert.throws(function() {
 					cliArgs(['opt1:', 'opt2:'], null, ['node', 'index.js', '--opt1', 'aVal', '--opt2']);
-				}
-				assert.throws(throwError1, Error);
-				assert.throws(throwError2, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
 		it('should throw an error for invalid options',
 			function() {
-				function throwError() {
+				assert.throws(function() {
 					var result = cliArgs(['opt1'], null, ['node', 'index.js', '--opt2']);
 					console.log(result);
-				}
-				assert.throws(throwError, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
 		it('should throw an error if required options are missing',
 			function() {
-				function throwError() {
+				assert.throws(function() {
 					cliArgs(['opt1!'], null, ['node', 'app.js', '--opt2']);
-				}
-				assert.throws(throwError, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
 		it('should throw an error if required options with values are missing',
 			function() {
-				function throwError() {
+				assert.throws(function() {
 					cliArgs(['opt1:!'], null, ['node', 'app.js', '--opt1']);
-				}
-				assert.throws(throwError, Error);
+				},
+				function(err) {
+					return err && err.name === "CliArgsError";
+				},
+				"unexpected error");
 			}
 		);
 
