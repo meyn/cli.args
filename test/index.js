@@ -1,6 +1,6 @@
 var assert = require('assert');
 
-describe('The cli-args library', function() {
+describe('The cli.args library', function() {
 	var cliArgs = require('../index.js');
 
 	it('should return all arguments as non-optional if no options are specified',

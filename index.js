@@ -36,6 +36,25 @@ function Option(optionOptions) {
 
 /*
 */
+function CliArgsError(usageStr, summaryStr) {
+	this.name    = "CliArgsError";
+	this.message = "";
+	this.usage   = usageStr;
+	this.summary = summaryStr;
+}
+
+Object.defineProperty(CliArgsError.prototype, "msg", {
+	get: function() {
+		return this.message;
+	},
+	set: function(newMsg) {
+		this.message = newMsg;
+	}
+});
+
+
+/*
+*/
 function setupStringOpts(optString) {
 	var optsList = {};
 	optString.split('').forEach(function(val, index, list) {
@@ -112,10 +131,6 @@ function setupArrayOpts(optsArray) {
 
 
 function createArgHelper(optionsString, optionsHelp, argv) {
-	var obj = {
-		info: {},
-	};
-
 	/*
 	*/
 	function parseOptString(optString) {
@@ -129,7 +144,7 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 
 	/*
 	*/
-	function parseArgs(argv, options) {
+	function parseArgs(argv, options, errObj) {
 		var optRegEx = new RegExp("(^-{1,2})([A-Za-z0-9 ,]+)");
 		var nonOptional = [];
 		var result = {};
@@ -168,7 +183,8 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 								result[currentOptionStr] = argv[++i];
 							}
 							else {
-								throw new Error("option needs an argument -- " + currentOptionStr);
+								errObj.msg = "option needs an argument -- " + currentOptionStr;
+								throw errObj;
 							}
 						}
 						else {
@@ -176,7 +192,8 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 						}
 					}
 					else {
-						throw new Error("unrecognized option -- " + currentOptionStr);
+						errObj.msg = "unrecognized option -- " + currentOptionStr;
+						throw errObj;
 					}
 				}
 				else if(optionMatch[1] === '-') {
@@ -196,7 +213,8 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 										result[currChar] = argv[++i];
 									}
 									else {
-										throw new Error("option needs an argument -- " + currChar);
+										errObj.msg = "option needs an argument -- " + currChar;
+										throw errObj;
 									}
 						            break;
 								}
@@ -205,7 +223,8 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 								}
 							}
 							else {
-								throw new Error("unrecognized option -- " + currChar);
+								errObj.msg = "unrecognized option -- " + currChar;
+								throw errObj;
 							}
 						}
 					}
@@ -222,19 +241,19 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 
 	/*
 	*/
-	function buildSummaryStr(usage, options, optionsHelp) {
+	function buildSummaryStr(usage, options, helpObj) {
 		var summaryStr = [];
 		if (options) {
-			for (var index in optionsHelp) {
-				if (options[index] && optionsHelp[index]) {
-					summaryStr.push('\t-' + index + '\t' + optionsHelp[index]);
+			for (var index in helpObj) {
+				if (options[index] && helpObj[index]) {
+					summaryStr.push('\t-' + index + '\t' + helpObj[index]);
 				}
 			}
 			if (summaryStr.length > 0) {
 				summaryStr.unshift('Options:');
 			}
-			optionsHelp && optionsHelp['pre'] && summaryStr.unshift(optionsHelp['pre']);
-			optionsHelp && optionsHelp['post'] && summaryStr.push(optionsHelp['post']);
+			helpObj && helpObj['pre'] && summaryStr.unshift(helpObj['pre']);
+			helpObj && helpObj['post'] && summaryStr.push(helpObj['post']);
 		}
 		summaryStr.unshift('Usage: ' + usage);
 		return summaryStr.join('\n');
@@ -268,23 +287,33 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	// -- main() --
 	argv = argv || process.argv;
 	var optionsList = parseOptString(optionsString);
-	var result = parseArgs(argv.slice(2), optionsList);
+	var usageStr = buildUsageStr(argv, optionsList)
+	var summaryStr = buildSummaryStr(usageStr, optionsList, optionsHelp);
+	var argsError = new CliArgsError(usageStr, summaryStr);
+	var obj = {
+		info: {},
+	};
+	var result = parseArgs(argv.slice(2), optionsList, argsError);
+
+	// do this initially so that if the user wants to use the
+	// 'info' or 'argv' keys for themselves they may do so
+	obj['argv'] = process.argv;
+	obj['info'] = {
+		usage: usageStr,
+		summary: summaryStr
+	};
+
 	for (var index in result) {
 		obj[index] = result[index];
 	}
+
 	for (var index in optionsList) {
 		var option = optionsList[index];
 		if (option.isRequired && !obj[index]) {
-			throw new Error('required option missing -- ' + index);
+			argsError.msg = 'required option missing -- ' + index;
+			throw argsError;
 		}
 	}
-	obj['argv'] = process.argv;
-	var usageStr = buildUsageStr(argv, optionsList)
-
-	obj.info = {
-		usage: usageStr,
-		summary: buildSummaryStr(usageStr, optionsList, optionsHelp)
-	};
 
 	return obj;
 }
