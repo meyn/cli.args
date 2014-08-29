@@ -31,6 +31,7 @@ console.log('Server running at http://127.0.0.1:'+args.p+'/');
 which can be started from the command line as,
 ```bash
 $ node app.js -p 8080
+Server running at http://127.0.0.1:8080/
 ```
 
 Furthermore, to ensure that the port number has to always be specified, the only change is an addition to the first line appending a '__!__' to the required option character (```p``` in this case) as shown below,
