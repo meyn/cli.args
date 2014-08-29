@@ -4,7 +4,7 @@ cli.args
 [![NPM version](https://badge.fury.io/js/cli.args.svg)](http://badge.fury.io/js/cli.args)
 [![Build Status](https://travis-ci.org/meyn/cli.args.svg?branch=master)](https://travis-ci.org/meyn/cli.args.svg?branch=master)
 
-[![npm](https://nodei.co/npm/cli.args.png?mini=true)](https://npmsjs.org/package/cli.args)
+[![npm](https://nodei.co/npm/cli.args.png?mini=true)](https://www.npmjs.org/package/cli.args)
 
 Flexible and easy command line arguments handling library for your node.js applications.
 
