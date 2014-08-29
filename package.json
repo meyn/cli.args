@@ -1,6 +1,6 @@
 {
   "name": "cli.args",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Easy command line arguments handling",
   "author": "Anselm Meyn",
   "main": "index.js",
