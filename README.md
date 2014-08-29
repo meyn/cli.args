@@ -11,17 +11,43 @@ Flexible and easy command line arguments handling library for your node.js appli
     npm install cli.args
 
 
+## Use
+
+__cli.args__ is a small and versatile library to help you easily support dynamic runtime behavior (based on command line input parameters) in your node.js apps.
+
+For instance, starting a node server on a port that is specified at runtime via a command line option (for e.g. ```-p```) is as simple as,
+
+```js
+var args = require('cli.args')('p:');
+var http = require('http');
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+}).listen(args.p, '127.0.0.1');
+console.log('Server running at http://127.0.0.1:'+args.p+'/');
+```
+which can be started from the command line as,
+```bash
+$ node app.js -p 8080
+```
+
+Furthermore, to ensure that the port number has to always be specified, the only change is an addition to the first line appending a '__!__' to the required option character (```p``` in this case) as shown below,
+
+```js
+var args = require('cli.args')('p:!');
+```
+
 ## Description
 
-Uses a ```getopt()``` style option string to parse command line arguments, and returns a JSON object of the parsed arguments along with some useful information.
+__cli.args__ uses an option string (based on the ```getopt()``` style option string) to parse supported command line parameters, and returns an easy to use JSON object of the parsed arguments along with some useful extra information.
 
-The option string may be specified in either the POSIX (short) or the GNU long format options. Short options are specified by a preceding dash / hyphen character (```-```) on the command line, while long options are preceded by double dashes (```--```).
+The option string may be specified in either a short (POSIX like) option string or a long (GNU long) format options array. Short options are normally specified by a preceding dash / hyphen character (```-```) on the command line, while long options are preceded by double dashes (```--```).
 
 ### Option String
 
 * Short format
 
-    In this format, the valid command line options that the application wants to support are specified as a single string, containing each valid option represented by a single alphanumeric character. Each option character is followed by either (OR both OR none) of the following 2 characters which affect the way the  preceding option is parsed,
+    In this format, all the valid command line options that the application wants to support are specified in a single string, containing each valid option represented by a single alphanumeric character. Each option character is followed by either (OR both OR none) of the following 2 characters which affect the way the  preceding option is parsed,
 
     - '__:__' - indicates that the preceding option character requires an argument
     - '__!__' - indicates that the preceding option character is mandatory
