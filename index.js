@@ -57,72 +57,29 @@ Object.defineProperty(CliArgsError.prototype, "msg", {
 */
 function setupStringOpts(optString) {
 	var optsList = {};
-	optString.split('').forEach(function(val, index, list) {
-		var opt,
-			needsArg,
-			isRequired;
-
-		switch(val) {
-		case '!':
-			if (list[index-1] === ':') {
-				needsArg = true;
-				opt = list[index-2];
-			}
-			else {
-				opt = list[index-1];
-			}
-			isRequired = true;
-			break;
-		case ':':
-			opt = list[index-1];
-			needsArg = true;
-			break;
-		default:
-			opt = val;
-			break;
-		}
-
-		if (opt && opt.match(/^[A-Za-z0-9]$/)) {
-			optsList[opt] = new Option({
-				needsArg: needsArg,
-				isRequired: isRequired
-			});
-		}
+	var matchedOptions = optString.match(/([A-Za-z0-9]{1}:?!?)/g);
+	matchedOptions && matchedOptions.forEach(function(val) {
+		optsList[val[0]] = new Option({
+			needsArg   : val[1] === ':',
+			isRequired : val[2] === '!' || val[1] === '!'
+		});
 	});
 	return optsList;
 }
+
 
 /*
 */
 function setupArrayOpts(optsArray) {
 	var optsList = {};
-	optsArray.forEach(function(val, index, list) {
-		var opt,
-			needsArg,
-			isRequired;
-
-		switch(val.substr(-1)) {
-		case '!':
-			if (val.slice(0, -1).substr(-1) === ':') {
-				needsArg = true;
-			}
-			opt = val.match(/([A-Za-z0-9]+)/)[1];
-			isRequired = true;
-			break;
-		case ':':
-			opt = val.slice(0, -1);
-			needsArg = true;
-			break;
-		default:
-			opt = val;
-			break;
-		}
-
-		if(opt && opt.match(/^[A-Za-z0-9]+/)) {
+	optsArray && optsArray.forEach(function(val, index, list) {
+		var matchedStrings = val.match(/([A-Za-z0-9]+)(:?!?)/);
+		var opt = matchedStrings[1];
+		if (opt) {
 			optsList[opt] = new Option({
-				needsArg: needsArg,
-				isRequired: isRequired,
-				isLong: (opt.length > 1)
+				needsArg   : matchedStrings[2][0] === ':',
+				isRequired : matchedStrings[2][1] === '!' || matchedStrings[2][0] === '!',
+				isLong     : (opt.length > 1)
 			});
 		}
 	});
@@ -146,16 +103,28 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	*/
 	function parseArgs(argv, options, errObj) {
 		var optRegEx = new RegExp("(^-{1,2})([A-Za-z0-9 ,]+)");
-		var nonOptional = [];
+		var regexMatch;
+		var nonOpt = [];
 		var result = {};
+		var argvIndex, optStrIndex;
+		var currOptStr;
+		var option;
+		var optionKey;
+		var optionsKeys;
+		var optionMatches;
+		var exactMatch;
 
 		if (!options || Object.keys(options).length <= 0) {
 			return { 'nonOpt': argv };
 		}
-		for (var i=0; i<argv.length; ++i) {
+		else {
+			optionsKeys = Object.keys(options);
+		}
+
+		for (argvIndex=0; argvIndex<argv.length; ++argvIndex) {
 			// As per POSIX any args after a '--' should be considered non-optional
-			if (argv[i] === '--') {
-				nonOptional = nonOptional.concat(argv.slice(i+1));
+			if (argv[argvIndex] === '--') {
+				nonOpt = nonOpt.concat(argv.slice(argvIndex+1));
 				break;
 			}
 
@@ -166,54 +135,76 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 			// input: original string
 			// 		OR
 			// null if no match
-			var optionMatch = optRegEx.exec(argv[i]);
+			regexMatch = optRegEx.exec(argv[argvIndex]);
 
-			if (!optionMatch) {
-				nonOptional.push(argv[i]);
+			if (!regexMatch) {
+				nonOpt.push(argv[argvIndex]);
 			}
 			else {
 				// the option is in the 2nd matched substring
-				var currentOptionStr = optionMatch[2];
+				currOptStr = regexMatch[2];
 
 				// use the first substring match to determine short / long option
-				if (optionMatch[1] === '--') {
-					if (options[currentOptionStr]) {
-						if (options[currentOptionStr].needsArg) {
-							if (i+1 < argv.length) {
-								result[currentOptionStr] = argv[++i];
+				if (regexMatch[1] === '--') {
+					optionKey = null;
+					// find closest matches
+					optionMatches = optionsKeys.filter(function(word) {
+						return (word.indexOf(currOptStr) === 0);
+					});
+					if (optionMatches.length === 1) {
+						optionKey = optionMatches[0];
+					}
+					else if (optionMatches.length > 1) {
+						exactMatch = optionMatches.filter(function(word) {
+							return (currOptStr === word);
+						});
+						if (!exactMatch || exactMatch.length < 1) {
+							errObj.msg = "option --" + currOptStr + " is ambiguous (--" + optionMatches.join(", --") + ")";
+							throw errObj;
+						}
+						else {
+							optionKey = exactMatch;
+						}
+					}
+
+					option = options[optionKey];
+					if (option) {
+						if (option.needsArg) {
+							if (argvIndex+1 < argv.length) {
+								result[optionKey] = argv[++argvIndex];
 							}
 							else {
-								errObj.msg = "option needs an argument -- " + currentOptionStr;
+								errObj.msg = "option needs an argument (" + optionKey + ")";
 								throw errObj;
 							}
 						}
 						else {
-							result[currentOptionStr] = true;
+							result[optionKey] = true;
 						}
 					}
 					else {
-						errObj.msg = "unrecognized option -- " + currentOptionStr;
+						errObj.msg = "unrecognized option (" + currOptStr + ")";
 						throw errObj;
 					}
 				}
-				else if(optionMatch[1] === '-') {
-					if (!currentOptionStr) { // if it was only a '-'
-						nonOptional.push(argv[i]);
+				else if(regexMatch[1] === '-') {
+					if (!currOptStr) { // if it was only a '-'
+						nonOpt.push(argv[argvIndex]);
 					}
 					else {
-						for (var j=0; j<currentOptionStr.length; ++j) {
-						    var currChar = currentOptionStr.charAt(j);
-						    var remainingChars = currentOptionStr.substring(j+1);
+						for (optStrIndex=0; optStrIndex<currOptStr.length; ++optStrIndex) {
+						    var currChar = currOptStr.charAt(optStrIndex);
+						    var remainingChars = currOptStr.substring(optStrIndex+1);
 						    if (options[currChar]) {
 						        if (options[currChar].needsArg) {
 									if (remainingChars) {
 										result[currChar] = remainingChars;
 									}
-									else if (i+1 < argv.length) {
-										result[currChar] = argv[++i];
+									else if (argvIndex+1 < argv.length) {
+										result[currChar] = argv[++argvIndex];
 									}
 									else {
-										errObj.msg = "option needs an argument -- " + currChar;
+										errObj.msg = "option needs an argument (" + currChar + ")";
 										throw errObj;
 									}
 						            break;
@@ -223,7 +214,7 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 								}
 							}
 							else {
-								errObj.msg = "unrecognized option -- " + currChar;
+								errObj.msg = "unrecognized option (" + currChar + ")";
 								throw errObj;
 							}
 						}
@@ -232,8 +223,8 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 			}
 		}
 
-		if (nonOptional.length > 0) {
-			result['nonOpt'] = nonOptional;
+		if (nonOpt.length > 0) {
+			result['nonOpt'] = nonOpt;
 		}
 
 		return result;
@@ -243,19 +234,25 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	*/
 	function buildSummaryStr(usage, options, helpObj) {
 		var summaryStr = [];
+		var currOpt;
+		var currOptHelp = [];
 		if (options) {
 			for (var index in helpObj) {
-				if (options[index] && helpObj[index]) {
-					summaryStr.push('\t-' + index + '\t' + helpObj[index]);
+				currOpt = options[index];
+				if (currOpt && helpObj[index]) {
+					currOptHelp = ['\t'];
+					currOptHelp.push((currOpt.isLong ? '--' : '-') + index);
+					currOptHelp.push((currOpt.needsArg ? ' ' + helpObj[index][0] + '\n\t\t' + helpObj[index].slice(1).join('\n') : '\t' + helpObj[index].join('\n')));
+					summaryStr.push(currOptHelp.join(''));
 				}
 			}
 			if (summaryStr.length > 0) {
 				summaryStr.unshift('Options:');
 			}
+			summaryStr.unshift('Usage: ' + usage);
 			helpObj && helpObj['pre'] && summaryStr.unshift(helpObj['pre']);
 			helpObj && helpObj['post'] && summaryStr.push(helpObj['post']);
 		}
-		summaryStr.unshift('Usage: ' + usage);
 		return summaryStr.join('\n');
 	}
 
@@ -310,7 +307,7 @@ function createArgHelper(optionsString, optionsHelp, argv) {
 	for (var index in optionsList) {
 		var option = optionsList[index];
 		if (option.isRequired && !obj[index]) {
-			argsError.msg = 'required option missing -- ' + index;
+			argsError.msg = 'required option missing (' + index + ')';
 			throw argsError;
 		}
 	}

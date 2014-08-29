@@ -1,6 +1,7 @@
 cli.args
 ========
 
+[![NPM version](https://badge.fury.io/js/cli.args.svg)](http://badge.fury.io/js/cli.args)
 [![Build Status](https://travis-ci.org/meyn/cli.args.svg?branch=master)](https://travis-ci.org/meyn/cli.args.svg?branch=master)
 
 Flexible and easy command line arguments handling library for your node.js applications.
@@ -130,7 +131,3 @@ results in the object ```args``` containing the following values,
 ## Tests
 
     npm test
-    
-## Release history
-
-    0.0.5 Initial release

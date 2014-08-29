@@ -10,27 +10,23 @@ describe('The cli.args library', function() {
 		}
 	);
 
-	it('should return any arguments after \'--\' as operands',
+	it('should return any arguments after \'--\' as non-optional operands',
 		function() {
 			var result = cliArgs('a:', null, ['node', 'index.js', '-a', 'aVal', '--', '-a', '-b']);
 			assert.deepEqual(result['nonOpt'], ['-a', '-b']);
 		}
 	);
 
-	describe('with options described by an option string', function() {
+	describe('with short options (described by a single option string)', function() {
 		it('should throw an error if no value is specified for a value-dependent option',
 			function() {
-				function throwError1() {
-					cliArgs('a:', null, ['node', 'index.js', '-a']);
-				}
-				function throwError2() {
-					cliArgs('a:b:', null, ['node', 'index.js', '-a', 'aVal', '-b']);
-				}
 				assert.throws(function() {
 					cliArgs('a:', null, ['node', 'index.js', '-a']);
 				},
 				function(err) {
-					return (err && err.name === 'CliArgsError');
+					return (err &&
+							err.name === 'CliArgsError' &&
+							err.message.indexOf('option needs an argument') === 0);
 				},
 				"unexpected error");
 
@@ -46,14 +42,13 @@ describe('The cli.args library', function() {
 
 		it('should throw an error for invalid options',
 			function() {
-				function throwError1() {
-					var result = cliArgs('-a', null, ['node', 'index.js', '-b']);
-				}
 				assert.throws(function() {
 					var result = cliArgs('-a', null, ['node', 'index.js', '-b']);
 				},
 				function(err) {
-					return (err && err.name === 'CliArgsError');
+					return (err &&
+							err.name === 'CliArgsError' &&
+							err.message.indexOf('unrecognized option') === 0);
 				},
 				"unexpected error");
 			}
@@ -70,10 +65,12 @@ describe('The cli.args library', function() {
 		it('should throw an error if required options are missing',
 			function() {
 				assert.throws(function() {
-					cliArgs('a!', null, ['node', 'app.js', '-b']);
+					cliArgs('a!b', null, ['node', 'app.js', '-b']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('required option missing') === 0);
 				},
 				"unexpected error");
 			}
@@ -85,7 +82,9 @@ describe('The cli.args library', function() {
 					cliArgs('a:!', null, ['node', 'app.js', '-a']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" && 
+							err.message.indexOf('option needs an argument') === 0);
 				},
 				"unexpected error");
 			}
@@ -180,13 +179,15 @@ describe('The cli.args library', function() {
 	});
 
 
-	describe('with options described by an option array', function() {
+	describe('with long options (described by an option array)', function() {
 		it('should throw an error for unrecognized options', function() {
 			assert.throws(function() {
-				cliArgs(['opt1'], null, ['node', 'index.js', '--opt2']);
+				cliArgs(['opt1'], null, ['node', 'index.js', '--opt1', '--opt2']);
 			},
 			function(err) {
-				return err && err.name === "CliArgsError";
+				return (err &&
+						err.name === "CliArgsError" &&
+						err.message.indexOf('unrecognized option') === 0);
 			},
 			"unexpected error");
 		});
@@ -203,7 +204,9 @@ describe('The cli.args library', function() {
 					cliArgs(['opt1:'], null, ['node', 'index.js', '--opt1']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('option needs an argument') === 0);
 				},
 				"unexpected error");
 
@@ -211,7 +214,9 @@ describe('The cli.args library', function() {
 					cliArgs(['opt1:', 'opt2:'], null, ['node', 'index.js', '--opt1', 'aVal', '--opt2']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('option needs an argument') === 0);
 				},
 				"unexpected error");
 			}
@@ -224,7 +229,9 @@ describe('The cli.args library', function() {
 					console.log(result);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('unrecognized option') === 0);
 				},
 				"unexpected error");
 			}
@@ -233,10 +240,12 @@ describe('The cli.args library', function() {
 		it('should throw an error if required options are missing',
 			function() {
 				assert.throws(function() {
-					cliArgs(['opt1!'], null, ['node', 'app.js', '--opt2']);
+					cliArgs(['opt1!'], null, ['node', 'app.js', 'optArg']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('required option missing') === 0);
 				},
 				"unexpected error");
 			}
@@ -248,7 +257,9 @@ describe('The cli.args library', function() {
 					cliArgs(['opt1:!'], null, ['node', 'app.js', '--opt1']);
 				},
 				function(err) {
-					return err && err.name === "CliArgsError";
+					return (err &&
+							err.name === "CliArgsError" &&
+							err.message.indexOf('option needs an argument') === 0);
 				},
 				"unexpected error");
 			}
@@ -314,23 +325,54 @@ describe('The cli.args library', function() {
 		);
 	});
 
-	it('should allow mixing long and short option arguments',
-		function() {
-			var result = cliArgs(['opt1', 'a'], null, ['node', 'index.js', '--opt1', '-a']);
-			assert.equal(result['opt1'], true);
-			assert.equal(result['a'], true);
+	describe('with long and short options (described by an option array)', function() {
+		it('should allow mixing long and short option arguments',
+			function() {
+				var result = cliArgs(['opt1', 'a'], null, ['node', 'index.js', '--opt1', '-a']);
+				assert.equal(result['opt1'], true);
+				assert.equal(result['a'], true);
 
-			result = cliArgs(['opt1:', 'a:'], null, ['node', 'index.js', '--opt1', 'opt1Val', '-a', 'aVal']);
-			assert.equal(result['opt1'], 'opt1Val');
-			assert.equal(result['a'], 'aVal');
+				result = cliArgs(['opt1:', 'a:'], null, ['node', 'index.js', '--opt1', 'opt1Val', '-a', 'aVal']);
+				assert.equal(result['opt1'], 'opt1Val');
+				assert.equal(result['a'], 'aVal');
 
-			result = cliArgs(['opt1', 'a:'], null, ['node', 'index.js', '--opt1', '-a', 'aVal']);
-			assert.equal(result['opt1'], true);
-			assert.equal(result['a'], 'aVal');
+				result = cliArgs(['opt1', 'a:'], null, ['node', 'index.js', '--opt1', '-a', 'aVal']);
+				assert.equal(result['opt1'], true);
+				assert.equal(result['a'], 'aVal');
 
-			result = cliArgs(['opt1:', 'a'], null, ['node', 'index.js', '--opt1', 'opt1Val', '-a']);
-			assert.equal(result['opt1'], 'opt1Val');
-			assert.equal(result['a'], true);
-		}
-	);
+				result = cliArgs(['opt1:', 'a'], null, ['node', 'index.js', '--opt1', 'opt1Val', '-a']);
+				assert.equal(result['opt1'], 'opt1Val');
+				assert.equal(result['a'], true);
+			}
+		);
+
+		it('should throw an error for ambiguous long options',
+			function() {
+				assert.throws(function() {
+					var result = cliArgs(['part:', 'party'], null, ['node', 'app.js', '1000', '--pa', '8000']);
+					console.log('--p result', result);
+				},
+				function(err) {
+					return (err &&
+							err.name === 'CliArgsError' &&
+							err.message.indexOf('option --'+'pa'+' is ambiguous') === 0);
+				},
+				"unexpected error");
+			}
+		);
+
+		it('should return the right argument for a long option that has the same starting string as another',
+			function() {
+				var result = cliArgs(['part:', 'party'], null, ['node', 'app.js', '1000', '--part', '8000']);
+				assert.equal(result['part'], '8000');
+			}
+		);
+
+		it('should not throw an error for a short option even with ambiguous long options',
+			function() {
+				var result = cliArgs(['port:', 'party', 'p:'], null, ['node', 'app.js', '1000', '-p', '8000']);
+				assert.equal(result['p'], 8000);
+			}
+		);
+	});
 });
