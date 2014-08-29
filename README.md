@@ -158,4 +158,4 @@ results in the object ```args``` containing the following values,
 
 ## Tests
 
-    npm test
+    npm test; # requires mocha
