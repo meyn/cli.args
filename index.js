@@ -42,7 +42,6 @@ function CliArgsError(usageStr, summaryStr) {
 	this.usage   = usageStr;
 	this.summary = summaryStr;
 }
-
 Object.defineProperty(CliArgsError.prototype, "msg", {
 	get: function() {
 		return this.message;
@@ -53,41 +52,39 @@ Object.defineProperty(CliArgsError.prototype, "msg", {
 });
 
 
-/*
-*/
-function setupStringOpts(optString) {
-	var optsList = {};
-	var matchedOptions = optString.match(/([A-Za-z0-9]{1}:?!?)/g);
-	matchedOptions && matchedOptions.forEach(function(val) {
-		optsList[val[0]] = new Option({
-			needsArg   : val[1] === ':',
-			isRequired : val[2] === '!' || val[1] === '!'
-		});
-	});
-	return optsList;
-}
-
-
-/*
-*/
-function setupArrayOpts(optsArray) {
-	var optsList = {};
-	optsArray && optsArray.forEach(function(val, index, list) {
-		var matchedStrings = val.match(/([A-Za-z0-9]+)(:?!?)/);
-		var opt = matchedStrings[1];
-		if (opt) {
-			optsList[opt] = new Option({
-				needsArg   : matchedStrings[2][0] === ':',
-				isRequired : matchedStrings[2][1] === '!' || matchedStrings[2][0] === '!',
-				isLong     : (opt.length > 1)
-			});
-		}
-	});
-	return optsList;
-}
-
-
 function createArgHelper(optionsString, optionsHelp, argv) {
+	/*
+	*/
+	function setupStringOpts(optString) {
+		var optsList = {};
+		var matchedOptions = optString.match(/([A-Za-z0-9]{1}:?!?)/g);
+		matchedOptions && matchedOptions.forEach(function(val) {
+			optsList[val[0]] = new Option({
+				needsArg   : val[1] === ':',
+				isRequired : val[2] === '!' || val[1] === '!'
+			});
+		});
+		return optsList;
+	}
+
+	/*
+	*/
+	function setupArrayOpts(optsArray) {
+		var optsList = {};
+		optsArray && optsArray.forEach(function(val, index, list) {
+			var matchedStrings = val.match(/([A-Za-z0-9]+)(:?!?)/);
+			var opt = matchedStrings[1];
+			if (opt) {
+				optsList[opt] = new Option({
+					needsArg   : matchedStrings[2][0] === ':',
+					isRequired : matchedStrings[2][1] === '!' || matchedStrings[2][0] === '!',
+					isLong     : (opt.length > 1)
+				});
+			}
+		});
+		return optsList;
+	}
+
 	/*
 	*/
 	function parseOptString(optString) {
